@@ -1,57 +1,86 @@
 "use client"
 
 import { useState } from "react"
+import { LinkIcon } from "lucide-react"
 import { ModeToggle, type ShareMode } from "@/components/mode-toggle"
-import { ModePreviewCard } from "@/components/mode-preview-card"
+import { QRCodeDisplay } from "@/components/qr-code-display"
 import { FABButton } from "@/components/fab-button"
 import { SettingsMenu } from "@/components/settings-menu"
-import { AccountProfilePage } from "@/components/pages/account-profile-page"
-import { ModeRulesPage } from "@/components/pages/mode-rules-page"
-import { ContactUsPage } from "@/components/pages/contact-us-page"
+import { SettingsPage } from "@/components/pages/settings-page"
 
-type SettingsPage = null | "account" | "mode-rules" | "contact"
+type CurrentPage = null | "settings"
 
 export function HomePage() {
   const [activeMode, setActiveMode] = useState<ShareMode>("professional")
-  const [currentPage, setCurrentPage] = useState<SettingsPage>(null)
+  const [currentPage, setCurrentPage] = useState<CurrentPage>(null)
+  const [copied, setCopied] = useState(false)
 
-  const handleSettingsNavigate = (page: string) => {
-    setCurrentPage(page as SettingsPage)
+  const handleSettingsNavigate = () => {
+    setCurrentPage("settings")
   }
 
   const handleBackToHome = () => {
     setCurrentPage(null)
   }
 
-  if (currentPage === "account") {
-    return <AccountProfilePage onBack={handleBackToHome} />
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/share/user123?mode=${activeMode}`
+    navigator.clipboard.writeText(link)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
-  if (currentPage === "mode-rules") {
-    return <ModeRulesPage onBack={handleBackToHome} />
-  }
-  if (currentPage === "contact") {
-    return <ContactUsPage onBack={handleBackToHome} />
+
+  if (currentPage === "settings") {
+    return <SettingsPage onBack={handleBackToHome} />
   }
 
   return (
-    <div className="flex-1 px-6 pt-6 pb-24">
-      <div className="flex items-start justify-between mb-8">
+    <div className="flex-1 flex flex-col items-center justify-start px-6 pt-8 pb-24">
+      {/* Top Header Section */}
+      <div className="w-full flex items-start justify-between mb-12">
         <div>
-          <p className="text-sm text-white/40 tracking-wide">Welcome back</p>
-          <h1 className="text-2xl font-bold text-white/95 mt-1">Zaid Khayyat</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Zaid Khayyat</h1>
+          <p className="text-sm text-white/40 mt-1">Share your contact</p>
         </div>
         <SettingsMenu onNavigate={handleSettingsNavigate} />
       </div>
 
-      {/* Mode Toggle Buttons */}
-      <div className="mb-6">
+      {/* Mode Switcher */}
+      <div className="w-full mb-12">
         <ModeToggle activeMode={activeMode} onModeChange={setActiveMode} />
       </div>
 
-      {/* Dynamic Preview Area */}
-      <div className="transition-all duration-500">
-        <ModePreviewCard mode={activeMode} />
+      {/* QR Code Center Section */}
+      <div className="flex-1 flex items-center justify-center w-full mb-8">
+        <div className="relative">
+          <style>{`
+            @keyframes pulse-subtle {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.8; }
+            }
+            .qr-pulse {
+              animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+          `}</style>
+          <div className="qr-pulse">
+            <QRCodeDisplay mode={activeMode} userName="Zaid Khayyat" />
+          </div>
+        </div>
       </div>
+
+      {/* Copy Link Button */}
+      <button
+        onClick={handleCopyLink}
+        className="glass-button w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 mb-6 transition-all"
+        style={{
+          transitionProperty: "all",
+          transitionDuration: "300ms",
+          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        <LinkIcon className="w-5 h-5 text-white/90" />
+        <span className="text-white font-medium">{copied ? "Copied!" : "Copy Link"}</span>
+      </button>
 
       {/* FAB for QR Scanning */}
       <FABButton onClick={() => console.log("Open QR Scanner")} />
