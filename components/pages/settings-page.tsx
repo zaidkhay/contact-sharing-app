@@ -1,57 +1,93 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown, Trash2, Mail, Edit2, Instagram, Linkedin, Twitter, Phone } from "lucide-react"
+import type React from "react"
 
-const socialPlatforms = [
+import { useState } from "react"
+import { ChevronDown, Trash2, Mail, Instagram, Linkedin, Github, Phone, Globe, Plus, Check } from "lucide-react"
+
+const personalPresets = [
+  { id: "instagram", name: "Instagram", icon: Instagram },
+  { id: "tiktok", name: "TikTok", icon: Globe },
+  { id: "phone", name: "Phone Number", icon: Phone },
+  { id: "snapchat", name: "Snapchat", icon: Globe },
+]
+
+const professionalPresets = [
+  { id: "linkedin", name: "LinkedIn", icon: Linkedin },
+  { id: "email", name: "Email", icon: Mail },
+  { id: "github", name: "GitHub", icon: Github },
+  { id: "phone", name: "Phone Number", icon: Phone },
+  { id: "website", name: "Website", icon: Globe },
+]
+
+const allPlatforms = [
   { id: "instagram", name: "Instagram", icon: Instagram, placeholder: "@username" },
   { id: "linkedin", name: "LinkedIn", icon: Linkedin, placeholder: "linkedin.com/in/username" },
-  { id: "twitter", name: "Twitter", icon: Twitter, placeholder: "@username" },
   { id: "email", name: "Email", icon: Mail, placeholder: "you@example.com" },
-  { id: "phone", name: "Phone", icon: Phone, placeholder: "+1 (555) 123-4567" },
+  { id: "github", name: "GitHub", icon: Github, placeholder: "github.com/username" },
+  { id: "phone", name: "Phone Number", icon: Phone, placeholder: "+1 (555) 123-4567" },
+  { id: "website", name: "Website", icon: Globe, placeholder: "https://yoursite.com" },
+  { id: "tiktok", name: "TikTok", icon: Globe, placeholder: "@username" },
+  { id: "snapchat", name: "Snapchat", icon: Globe, placeholder: "@username" },
+  { id: "twitter", name: "Twitter/X", icon: Globe, placeholder: "@username" },
 ]
 
-const modes = [
-  {
-    id: "personal",
-    label: "Personal",
-    description: "Personal details & social",
-    liveFields: ["Email", "Phone", "Instagram"],
-  },
-  {
-    id: "professional",
-    label: "Professional",
-    description: "Work & career info",
-    liveFields: ["LinkedIn", "Email", "Phone"],
-  },
-  {
-    id: "custom",
-    label: "Custom",
-    description: "Your personalized set",
-    liveFields: ["Instagram", "Twitter"],
-  },
-]
+const validateInput = (id: string, value: string): boolean => {
+  if (!value.trim()) return false
+  if (id === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  if (id === "instagram" || id === "tiktok" || id === "snapchat" || id === "twitter") {
+    return value.startsWith("@") || value.length > 2
+  }
+  if (id === "phone") return /^[+]?[\d\s()-]{7,}$/.test(value)
+  if (id === "website") return value.startsWith("http") || value.includes(".")
+  return value.length > 2
+}
 
 export function SettingsPage() {
-  const [name, setName] = useState("Zaid Khayyat")
-  const [profilePic] = useState("ZK")
-  const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [expandedMode, setExpandedMode] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const [socials, setSocials] = useState<Record<string, string>>({
-    instagram: "",
-    linkedin: "",
-    twitter: "",
-    email: "",
-    phone: "",
+  // Toggle states for each mode
+  const [personalToggles, setPersonalToggles] = useState<Record<string, boolean>>({
+    instagram: true,
+    tiktok: false,
+    phone: true,
+    snapchat: false,
   })
 
-  const handleSocialChange = (platform: string, value: string) => {
-    setSocials((prev) => ({
-      ...prev,
-      [platform]: value,
-    }))
+  const [professionalToggles, setProfessionalToggles] = useState<Record<string, boolean>>({
+    linkedin: true,
+    email: true,
+    github: false,
+    phone: true,
+    website: false,
+  })
+
+  const [customToggles, setCustomToggles] = useState<Record<string, boolean>>({
+    instagram: false,
+    linkedin: false,
+    email: false,
+    github: false,
+    phone: false,
+    website: false,
+    tiktok: false,
+    snapchat: false,
+    twitter: false,
+  })
+
+  // Link values and saved states
+  const [links, setLinks] = useState<Record<string, string>>({})
+  const [savedLinks, setSavedLinks] = useState<Record<string, boolean>>({})
+
+  const handleLinkChange = (id: string, value: string) => {
+    setLinks((prev) => ({ ...prev, [id]: value }))
+    setSavedLinks((prev) => ({ ...prev, [id]: false }))
+  }
+
+  const handleSaveLink = (id: string) => {
+    if (validateInput(id, links[id] || "")) {
+      setSavedLinks((prev) => ({ ...prev, [id]: true }))
+    }
   }
 
   const handleDelete = () => {
@@ -59,127 +95,190 @@ export function SettingsPage() {
     setShowDeleteConfirm(false)
   }
 
+  const ToggleSwitch = ({
+    enabled,
+    onToggle,
+  }: {
+    enabled: boolean
+    onToggle: () => void
+  }) => (
+    <button
+      onClick={onToggle}
+      className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+        enabled ? "bg-green-500/60" : "bg-white/10"
+      } border border-white/20`}
+    >
+      <div
+        className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${
+          enabled ? "left-6" : "left-1"
+        }`}
+      />
+    </button>
+  )
+
+  const AccordionItem = ({
+    title,
+    description,
+    isExpanded,
+    onToggle,
+    presets,
+    toggles,
+    setToggles,
+  }: {
+    title: string
+    description: string
+    isExpanded: boolean
+    onToggle: () => void
+    presets: typeof personalPresets
+    toggles: Record<string, boolean>
+    setToggles: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+  }) => {
+    const activeCount = Object.values(toggles).filter(Boolean).length
+
+    return (
+      <div className="glass-card rounded-2xl border border-white/15 overflow-hidden">
+        <button onClick={onToggle} className="w-full p-5 flex items-center justify-between text-left">
+          <div>
+            <h4 className="font-bold text-white text-lg">{title}</h4>
+            <p className="text-sm font-light text-white/50 mt-1">{description}</p>
+            <p className="text-xs text-blue-400 mt-2">{activeCount} items active</p>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-white/70 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {isExpanded && (
+          <div className="px-5 pb-5 pt-2 border-t border-white/10 space-y-3">
+            {presets.map((preset) => {
+              const Icon = preset.icon
+              return (
+                <div key={preset.id} className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5 text-white/70" />
+                    <span className="text-sm font-medium text-white/90">{preset.name}</span>
+                  </div>
+                  <ToggleSwitch
+                    enabled={toggles[preset.id] || false}
+                    onToggle={() =>
+                      setToggles((prev) => ({
+                        ...prev,
+                        [preset.id]: !prev[preset.id],
+                      }))
+                    }
+                  />
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 flex flex-col px-6 pt-6 pb-24 overflow-y-auto">
-      {/* Section A: Account Overview */}
       <div className="mb-8">
-        <div className="glass-card p-6 rounded-2xl border border-white/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">{profilePic}</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">{name}</h2>
-                <p className="text-sm font-light text-white/50">Profile Settings</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsEditingProfile(!isEditingProfile)}
-              className="glass-button px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <Edit2 className="w-4 h-4 text-white" />
-              <span className="text-sm font-medium text-white">Edit</span>
-            </button>
-          </div>
-
-          {isEditingProfile && (
-            <div className="mt-4 pt-4 border-t border-white/10 space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-white/60 uppercase tracking-wide">Full Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-all"
-                  placeholder="Your name"
-                />
-              </div>
-              <button className="w-full glass-button py-2 rounded-lg text-white font-medium text-sm">
-                Save Profile
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Section B: Mode Rules - Hero Section */}
-      <div className="mb-8">
-        <h3 className="text-lg font-bold text-white mb-4">Mode Rules</h3>
+        <h3 className="text-xl font-bold text-white mb-4">Configure Modes</h3>
         <div className="space-y-3">
-          {modes.map((mode) => (
-            <div key={mode.id} className="glass-card p-4 rounded-xl border border-white/20">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <h4 className="font-bold text-white/95">{mode.label}</h4>
-                  <p className="text-xs font-light text-white/50 mt-0.5">{mode.description}</p>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {mode.liveFields.map((field) => (
-                      <span
-                        key={field}
-                        className="inline-block px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded border border-blue-500/30"
-                      >
-                        {field}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setExpandedMode(expandedMode === mode.id ? null : mode.id)}
-                  className="glass-button px-4 py-2 rounded-lg text-sm font-medium text-white flex-shrink-0"
-                >
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-300 ${
-                      expandedMode === mode.id ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-              </div>
+          <AccordionItem
+            title="Personal Mode"
+            description="Social & casual sharing"
+            isExpanded={expandedMode === "personal"}
+            onToggle={() => setExpandedMode(expandedMode === "personal" ? null : "personal")}
+            presets={personalPresets}
+            toggles={personalToggles}
+            setToggles={setPersonalToggles}
+          />
 
-              {expandedMode === mode.id && (
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <p className="text-xs font-light text-white/60 mb-3">Customize what data to share in this mode</p>
-                </div>
-              )}
-            </div>
-          ))}
+          <AccordionItem
+            title="Professional Mode"
+            description="Work & career connections"
+            isExpanded={expandedMode === "professional"}
+            onToggle={() => setExpandedMode(expandedMode === "professional" ? null : "professional")}
+            presets={professionalPresets}
+            toggles={professionalToggles}
+            setToggles={setProfessionalToggles}
+          />
+
+          <AccordionItem
+            title="Custom Mode"
+            description="Your personalized selection"
+            isExpanded={expandedMode === "custom"}
+            onToggle={() => setExpandedMode(expandedMode === "custom" ? null : "custom")}
+            presets={allPlatforms}
+            toggles={customToggles}
+            setToggles={setCustomToggles}
+          />
         </div>
       </div>
 
-      {/* Section C: Link Socials - Input Hub */}
       <div className="mb-8">
-        <h3 className="text-lg font-bold text-white mb-4">Link Socials</h3>
-        <div className="glass-card p-4 rounded-xl border border-white/20 space-y-5">
-          {socialPlatforms.map((platform) => {
+        <h3 className="text-xl font-bold text-white mb-2">Update Your Details</h3>
+        <p className="text-sm font-light text-white/50 mb-4">Enter your handles and links below</p>
+
+        <div className="glass-card p-5 rounded-2xl border border-white/15 space-y-5">
+          {allPlatforms.map((platform) => {
             const Icon = platform.icon
+            const value = links[platform.id] || ""
+            const isValid = validateInput(platform.id, value)
+            const isSaved = savedLinks[platform.id]
+            const hasValue = value.trim().length > 0
+
             return (
               <div key={platform.id} className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Icon className="w-5 h-5 text-white/70" />
                   <span className="text-sm font-medium text-white/90">{platform.name}</span>
                 </div>
-                <input
-                  type="text"
-                  value={socials[platform.id] || ""}
-                  onChange={(e) => handleSocialChange(platform.id, e.target.value)}
-                  placeholder={platform.placeholder}
-                  className="w-full bg-white/5 border border-white/15 px-4 py-3 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-sm"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => handleLinkChange(platform.id, e.target.value)}
+                    placeholder={platform.placeholder}
+                    className={`flex-1 bg-black/40 px-4 py-3 rounded-lg text-white placeholder:text-white/40 focus:outline-none transition-all text-sm border ${
+                      hasValue
+                        ? isValid
+                          ? "border-green-500/50 focus:border-green-500/70"
+                          : "border-red-500/50 focus:border-red-500/70"
+                        : "border-white/15 focus:border-white/30"
+                    }`}
+                  />
+                  <button
+                    onClick={() => handleSaveLink(platform.id)}
+                    disabled={!hasValue || !isValid}
+                    className={`px-4 py-3 rounded-lg flex items-center gap-2 transition-all text-sm font-medium ${
+                      isSaved
+                        ? "bg-green-500/30 border border-green-500/50 text-green-300"
+                        : hasValue && isValid
+                          ? "glass-button text-white"
+                          : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
+                    }`}
+                  >
+                    {isSaved ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">{links[platform.id] ? "Update" : "Add"}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )
           })}
         </div>
       </div>
 
-      {/* Section D: Contact Us */}
       <div className="mb-8">
-        <button className="w-full glass-card p-4 rounded-xl border border-white/20 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+        <button className="w-full glass-card p-4 rounded-xl border border-white/15 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
           <Mail className="w-5 h-5 text-white" />
           <span className="font-medium text-white">Contact Support</span>
         </button>
       </div>
 
-      {/* Section E: Privacy/Account Deletion - Red-tinted */}
       <div className="pt-6 border-t border-white/10">
         {!showDeleteConfirm ? (
           <button
