@@ -5,33 +5,16 @@ import { LinkIcon } from "lucide-react"
 import { ModeToggle, type ShareMode } from "@/components/mode-toggle"
 import { QRCodeDisplay } from "@/components/qr-code-display"
 import { FABButton } from "@/components/fab-button"
-import { SettingsMenu } from "@/components/settings-menu"
-import { SettingsPage } from "@/components/pages/settings-page"
-
-type CurrentPage = null | "settings"
 
 export function HomePage() {
   const [activeMode, setActiveMode] = useState<ShareMode>("professional")
-  const [currentPage, setCurrentPage] = useState<CurrentPage>(null)
   const [copied, setCopied] = useState(false)
-
-  const handleSettingsNavigate = () => {
-    setCurrentPage("settings")
-  }
-
-  const handleBackToHome = () => {
-    setCurrentPage(null)
-  }
 
   const handleCopyLink = () => {
     const link = `${window.location.origin}/share/user123?mode=${activeMode}`
     navigator.clipboard.writeText(link)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }
-
-  if (currentPage === "settings") {
-    return <SettingsPage onBack={handleBackToHome} />
   }
 
   return (
@@ -42,7 +25,6 @@ export function HomePage() {
           <h1 className="text-3xl font-bold text-white tracking-tight">Zaid Khayyat</h1>
           <p className="text-sm text-white/40 mt-1">Share your contact</p>
         </div>
-        <SettingsMenu onNavigate={handleSettingsNavigate} />
       </div>
 
       {/* Mode Switcher */}
