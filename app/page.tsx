@@ -4,7 +4,7 @@ import { useState } from "react"
 import { BottomNav, type NavPage } from "@/components/bottom-nav"
 import { HomePage } from "@/components/pages/home-page"
 import { ContactsPage } from "@/components/pages/contacts-page"
-import { QRCodePage } from "@/components/pages/qrcode-page"
+import { SettingsPage } from "@/components/pages/settings-page"
 
 export default function App() {
   const [activePage, setActivePage] = useState<NavPage>("home")
@@ -15,7 +15,7 @@ export default function App() {
         {/* Page Content */}
         {activePage === "home" && <HomePage />}
         {activePage === "contacts" && <ContactsPage />}
-        {activePage === "qrcode" && <QRCodePage />}
+        {activePage === "settings" && <SettingsPage />}
 
         {/* Bottom Navigation */}
         <BottomNav activePage={activePage} onPageChange={setActivePage} />

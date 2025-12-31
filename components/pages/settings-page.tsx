@@ -1,33 +1,28 @@
 "use client"
 
 import { useState } from "react"
-import {
-  ChevronDown,
-  Trash2,
-  Mail,
-  Edit2,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Github,
-  MessageCircle,
-  Globe,
-} from "lucide-react"
+import { ChevronDown, Trash2, Mail, Edit2, Instagram, Linkedin, Twitter, Phone } from "lucide-react"
 
-type SettingsPageProps = {}
+const socialPlatforms = [
+  { id: "instagram", name: "Instagram", icon: Instagram, placeholder: "@username" },
+  { id: "linkedin", name: "LinkedIn", icon: Linkedin, placeholder: "linkedin.com/in/username" },
+  { id: "twitter", name: "Twitter", icon: Twitter, placeholder: "@username" },
+  { id: "email", name: "Email", icon: Mail, placeholder: "you@example.com" },
+  { id: "phone", name: "Phone", icon: Phone, placeholder: "+1 (555) 123-4567" },
+]
 
 const modes = [
   {
-    id: "professional",
+    id: "personal",
     label: "Personal",
     description: "Personal details & social",
-    liveFields: ["Email", "Phone", "LinkedIn"],
+    liveFields: ["Email", "Phone", "Instagram"],
   },
   {
-    id: "business",
+    id: "professional",
     label: "Professional",
     description: "Work & career info",
-    liveFields: ["Company", "Job Title", "Work Email"],
+    liveFields: ["LinkedIn", "Email", "Phone"],
   },
   {
     id: "custom",
@@ -37,29 +32,19 @@ const modes = [
   },
 ]
 
-const socialPlatforms = [
-  { id: "instagram", name: "Instagram", icon: Instagram, placeholder: "@username" },
-  { id: "linkedin", name: "LinkedIn", icon: Linkedin, placeholder: "profile-url" },
-  { id: "twitter", name: "Twitter", icon: Twitter, placeholder: "@username" },
-  { id: "github", name: "GitHub", icon: Github, placeholder: "username" },
-  { id: "discord", name: "Discord", icon: MessageCircle, placeholder: "username#0000" },
-  { id: "website", name: "Website", icon: Globe, placeholder: "https://example.com" },
-]
-
-export function SettingsPage({}: SettingsPageProps) {
+export function SettingsPage() {
   const [name, setName] = useState("Zaid Khayyat")
-  const [profilePic, setProfilePic] = useState("ZK")
+  const [profilePic] = useState("ZK")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [expandedMode, setExpandedMode] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const [socials, setSocials] = useState<Record<string, string>>({
-    instagram: "zaidkhayyat",
-    linkedin: "zaid-khayyat",
-    twitter: "zaidkhayyat",
-    github: "zaidkhayyat",
-    discord: "zaidkhayyat#0001",
-    website: "zaidkhayyat.com",
+    instagram: "",
+    linkedin: "",
+    twitter: "",
+    email: "",
+    phone: "",
   })
 
   const handleSocialChange = (platform: string, value: string) => {
@@ -76,7 +61,7 @@ export function SettingsPage({}: SettingsPageProps) {
 
   return (
     <div className="flex-1 flex flex-col px-6 pt-6 pb-24 overflow-y-auto">
-      {/* Account Overview */}
+      {/* Section A: Account Overview */}
       <div className="mb-8">
         <div className="glass-card p-6 rounded-2xl border border-white/20">
           <div className="flex items-center justify-between">
@@ -86,7 +71,7 @@ export function SettingsPage({}: SettingsPageProps) {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">{name}</h2>
-                <p className="text-sm text-white/50">Profile Settings</p>
+                <p className="text-sm font-light text-white/50">Profile Settings</p>
               </div>
             </div>
             <button
@@ -118,7 +103,7 @@ export function SettingsPage({}: SettingsPageProps) {
         </div>
       </div>
 
-      {/* Mode Rules - Hero Section */}
+      {/* Section B: Mode Rules - Hero Section */}
       <div className="mb-8">
         <h3 className="text-lg font-bold text-white mb-4">Mode Rules</h3>
         <div className="space-y-3">
@@ -127,7 +112,7 @@ export function SettingsPage({}: SettingsPageProps) {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <h4 className="font-bold text-white/95">{mode.label}</h4>
-                  <p className="text-xs text-white/50 mt-0.5">{mode.description}</p>
+                  <p className="text-xs font-light text-white/50 mt-0.5">{mode.description}</p>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {mode.liveFields.map((field) => (
                       <span
@@ -153,7 +138,7 @@ export function SettingsPage({}: SettingsPageProps) {
 
               {expandedMode === mode.id && (
                 <div className="mt-4 pt-4 border-t border-white/10">
-                  <p className="text-xs text-white/60 mb-3">Customize what data to share in this mode</p>
+                  <p className="text-xs font-light text-white/60 mb-3">Customize what data to share in this mode</p>
                 </div>
               )}
             </div>
@@ -161,24 +146,24 @@ export function SettingsPage({}: SettingsPageProps) {
         </div>
       </div>
 
-      {/* Link Socials - Input Hub */}
+      {/* Section C: Link Socials - Input Hub */}
       <div className="mb-8">
         <h3 className="text-lg font-bold text-white mb-4">Link Socials</h3>
-        <div className="space-y-4">
+        <div className="glass-card p-4 rounded-xl border border-white/20 space-y-5">
           {socialPlatforms.map((platform) => {
             const Icon = platform.icon
             return (
               <div key={platform.id} className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Icon className="w-4 h-4 text-white/70" />
-                  <span className="text-sm font-medium text-white/80">{platform.name}</span>
+                  <Icon className="w-5 h-5 text-white/70" />
+                  <span className="text-sm font-medium text-white/90">{platform.name}</span>
                 </div>
                 <input
                   type="text"
                   value={socials[platform.id] || ""}
                   onChange={(e) => handleSocialChange(platform.id, e.target.value)}
                   placeholder={platform.placeholder}
-                  className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-all text-sm"
+                  className="w-full bg-white/5 border border-white/15 px-4 py-3 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-sm"
                 />
               </div>
             )
@@ -186,7 +171,7 @@ export function SettingsPage({}: SettingsPageProps) {
         </div>
       </div>
 
-      {/* Contact Us */}
+      {/* Section D: Contact Us */}
       <div className="mb-8">
         <button className="w-full glass-card p-4 rounded-xl border border-white/20 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
           <Mail className="w-5 h-5 text-white" />
@@ -194,7 +179,7 @@ export function SettingsPage({}: SettingsPageProps) {
         </button>
       </div>
 
-      {/* Privacy/Account Deletion */}
+      {/* Section E: Privacy/Account Deletion - Red-tinted */}
       <div className="pt-6 border-t border-white/10">
         {!showDeleteConfirm ? (
           <button
@@ -205,8 +190,8 @@ export function SettingsPage({}: SettingsPageProps) {
             Delete Account & Wipe Data
           </button>
         ) : (
-          <div className="space-y-3">
-            <p className="text-white/70 text-sm">
+          <div className="bg-red-500/10 border border-red-500/30 backdrop-blur-md p-4 rounded-xl space-y-3">
+            <p className="text-white/70 text-sm font-light">
               This action cannot be undone. All your data will be permanently deleted.
             </p>
             <div className="flex gap-3">

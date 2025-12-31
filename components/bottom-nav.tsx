@@ -1,9 +1,9 @@
 "use client"
 
-import { Home, Users, QrCode, Settings } from "lucide-react"
+import { Home, Users, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export type NavPage = "home" | "contacts" | "qrcode" | "settings"
+export type NavPage = "home" | "contacts" | "settings"
 
 interface BottomNavProps {
   activePage: NavPage
@@ -14,7 +14,6 @@ export function BottomNav({ activePage, onPageChange }: BottomNavProps) {
   const navItems = [
     { id: "home" as NavPage, icon: Home, label: "Home" },
     { id: "contacts" as NavPage, icon: Users, label: "Connections" },
-    { id: "qrcode" as NavPage, icon: QrCode, label: "My Code" },
     { id: "settings" as NavPage, icon: Settings, label: "Settings" },
   ]
 
