@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useCallback, memo } from "react"
 import {
   Menu,
   X,
@@ -32,6 +32,64 @@ const socialPlatforms = [
   { id: "website", name: "Website", icon: Globe, placeholder: "https://yoursite.com" },
 ]
 
+interface SocialInputProps {
+  platform: (typeof socialPlatforms)[number]
+  value: string
+  isSaved: boolean
+  onChangeValue: (id: string, value: string) => void
+  onSave: (id: string) => void
+}
+
+const SocialInput = memo(function SocialInput({ platform, value, isSaved, onChangeValue, onSave }: SocialInputProps) {
+  const Icon = platform.icon
+  const hasValue = value.trim().length > 0
+
+  return (
+    <div className="glass-card p-4 rounded-xl border border-white/15">
+      {/* Icon and Label */}
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="w-5 h-5 text-white/70" />
+        <span className="text-sm font-medium text-white">{platform.name}</span>
+      </div>
+
+      {/* Input and Add Button */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChangeValue(platform.id, e.target.value)}
+          placeholder={platform.placeholder}
+          className="flex-1 bg-black/40 border border-white/20 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 focus:bg-black/50 text-sm"
+          style={{
+            transitionProperty: "border-color, background-color",
+            transitionDuration: "200ms",
+            transitionTimingFunction: "ease-out",
+          }}
+        />
+        <button
+          onClick={() => onSave(platform.id)}
+          disabled={!hasValue}
+          className={`px-5 py-3 rounded-lg flex items-center gap-2 text-sm font-medium ${
+            isSaved
+              ? "bg-green-500/30 border border-green-500/50 text-green-300"
+              : hasValue
+                ? "bg-white/25 border border-white/30 text-white hover:bg-white/35 hover:border-white/40"
+                : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
+          }`}
+          style={{
+            transitionProperty: "background-color, border-color, color",
+            transitionDuration: "200ms",
+            transitionTimingFunction: "ease-out",
+          }}
+        >
+          {isSaved ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          <span>{isSaved ? "Saved" : "Add"}</span>
+        </button>
+      </div>
+    </div>
+  )
+})
+
 export function SettingsPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState<SubPage>("main")
@@ -51,16 +109,19 @@ export function SettingsPage() {
     custom: [],
   })
 
-  const handleLinkChange = (id: string, value: string) => {
+  const handleLinkChange = useCallback((id: string, value: string) => {
     setLinks((prev) => ({ ...prev, [id]: value }))
     setSavedLinks((prev) => ({ ...prev, [id]: false }))
-  }
+  }, [])
 
-  const handleSaveLink = (id: string) => {
-    if (links[id]?.trim()) {
-      setSavedLinks((prev) => ({ ...prev, [id]: true }))
-    }
-  }
+  const handleSaveLink = useCallback((id: string) => {
+    setLinks((prev) => {
+      if (prev[id]?.trim()) {
+        setSavedLinks((s) => ({ ...s, [id]: true }))
+      }
+      return prev
+    })
+  }, [])
 
   const handleNameSave = () => {
     if (tempName.trim()) {
@@ -100,7 +161,7 @@ export function SettingsPage() {
                 onBlur={handleNameSave}
                 onKeyDown={(e) => e.key === "Enter" && handleNameSave()}
                 autoFocus
-                className="bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-xl font-bold text-white focus:outline-none focus:border-white/40"
+                className="bg-black/40 border border-white/20 rounded-lg px-3 py-2 text-xl font-bold text-white focus:outline-none focus:border-white/40"
               />
             </div>
           ) : (
@@ -139,57 +200,16 @@ export function SettingsPage() {
         <p className="text-sm font-light text-white/50 mb-4">Add your social handles and contact info</p>
 
         <div className="space-y-4">
-          {socialPlatforms.map((platform) => {
-            const Icon = platform.icon
-            const value = links[platform.id] || ""
-            const isSaved = savedLinks[platform.id]
-            const hasValue = value.trim().length > 0
-
-            return (
-              <div key={platform.id} className="glass-card p-4 rounded-xl border border-white/15">
-                {/* Icon and Label */}
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon className="w-5 h-5 text-white/70" />
-                  <span className="text-sm font-medium text-white">{platform.name}</span>
-                </div>
-
-                {/* Input and Add Button */}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => handleLinkChange(platform.id, e.target.value)}
-                    placeholder={platform.placeholder}
-                    className="flex-1 bg-white/5 border border-white/15 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 text-sm"
-                    style={{
-                      transitionProperty: "border-color",
-                      transitionDuration: "200ms",
-                      transitionTimingFunction: "ease-out",
-                    }}
-                  />
-                  <button
-                    onClick={() => handleSaveLink(platform.id)}
-                    disabled={!hasValue}
-                    className={`px-4 py-3 rounded-lg flex items-center gap-2 text-sm font-medium ${
-                      isSaved
-                        ? "bg-green-500/30 border border-green-500/50 text-green-300"
-                        : hasValue
-                          ? "glass-button text-white"
-                          : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
-                    }`}
-                    style={{
-                      transitionProperty: "background-color, border-color, color",
-                      transitionDuration: "200ms",
-                      transitionTimingFunction: "ease-out",
-                    }}
-                  >
-                    {isSaved ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                    <span className="hidden sm:inline">{isSaved ? "Saved" : "Add"}</span>
-                  </button>
-                </div>
-              </div>
-            )
-          })}
+          {socialPlatforms.map((platform) => (
+            <SocialInput
+              key={platform.id}
+              platform={platform}
+              value={links[platform.id] || ""}
+              isSaved={savedLinks[platform.id] || false}
+              onChangeValue={handleLinkChange}
+              onSave={handleSaveLink}
+            />
+          ))}
         </div>
       </div>
 
@@ -387,7 +407,7 @@ export function SettingsPage() {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="How can we help you?"
               rows={5}
-              className="w-full bg-white/5 border border-white/15 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 text-sm resize-none"
+              className="w-full bg-black/40 border border-white/20 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 text-sm resize-none"
             />
           </div>
 
@@ -399,7 +419,7 @@ export function SettingsPage() {
               sent
                 ? "bg-green-500/30 border border-green-500/50 text-green-300"
                 : message.trim()
-                  ? "glass-button text-white"
+                  ? "bg-white/25 border border-white/30 text-white hover:bg-white/35"
                   : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
             }`}
           >
@@ -527,11 +547,11 @@ export function SettingsPage() {
 
   // Render current page
   return (
-    <>
+    <div className="flex-1 flex flex-col min-h-0">
       {currentPage === "main" && <MainView />}
       {currentPage === "mode-rules" && <ModeRulesView />}
       {currentPage === "contact-us" && <ContactUsView />}
       {currentPage === "data-management" && <DataManagementView />}
-    </>
+    </div>
   )
 }

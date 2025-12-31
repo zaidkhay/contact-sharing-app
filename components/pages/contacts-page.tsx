@@ -7,14 +7,14 @@ import { ContactCard } from "@/components/contact-card"
 type FilterTab = "all" | "sent" | "received"
 
 const contacts = [
-  { id: 1, name: "Sarah Johnson", sharedMode: "Shared: Personal", type: "sent" as const },
-  { id: 2, name: "Mike Thompson", sharedMode: "Shared: Business", type: "received" as const },
-  { id: 3, name: "Emily Davis", sharedMode: "Shared: Custom", type: "sent" as const },
-  { id: 4, name: "David Wilson", sharedMode: "Shared: Personal", type: "received" as const },
-  { id: 5, name: "Jessica Brown", sharedMode: "Shared: Business", type: "sent" as const },
-  { id: 6, name: "Chris Martinez", sharedMode: "Shared: Custom", type: "received" as const },
-  { id: 7, name: "Amanda Lee", sharedMode: "Shared: Personal", type: "sent" as const },
-  { id: 8, name: "Ryan Garcia", sharedMode: "Shared: Business", type: "received" as const },
+  { id: 1, name: "Sarah Johnson", sharedMode: "Personal", type: "sent" as const },
+  { id: 2, name: "Mike Thompson", sharedMode: "Professional", type: "received" as const },
+  { id: 3, name: "Emily Davis", sharedMode: "Custom", type: "sent" as const },
+  { id: 4, name: "David Wilson", sharedMode: "Personal", type: "received" as const },
+  { id: 5, name: "Jessica Brown", sharedMode: "Professional", type: "sent" as const },
+  { id: 6, name: "Chris Martinez", sharedMode: "Custom", type: "received" as const },
+  { id: 7, name: "Amanda Lee", sharedMode: "Personal", type: "sent" as const },
+  { id: 8, name: "Ryan Garcia", sharedMode: "Professional", type: "received" as const },
 ]
 
 export function ContactsPage() {
@@ -69,11 +69,7 @@ export function ContactsPage() {
       {/* Contact List */}
       <div className="space-y-3">
         {filteredContacts.map((contact) => (
-          <ContactCard
-            key={contact.id}
-            name={contact.name}
-            sharedMode={`${contact.sharedMode} · ${contact.type === "sent" ? "You shared" : "They shared"}`}
-          />
+          <ContactCard key={contact.id} name={contact.name} sharedMode={`Shared: ${contact.sharedMode}`} />
         ))}
 
         {filteredContacts.length === 0 && (
