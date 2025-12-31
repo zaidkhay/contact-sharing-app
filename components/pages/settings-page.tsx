@@ -1,83 +1,55 @@
 "use client"
-
-import type React from "react"
-
 import { useState } from "react"
-import { ChevronDown, Trash2, Mail, Instagram, Linkedin, Github, Phone, Globe, Plus, Check } from "lucide-react"
+import {
+  Menu,
+  X,
+  Pencil,
+  ArrowLeft,
+  Instagram,
+  Linkedin,
+  Mail,
+  Phone,
+  Globe,
+  Github,
+  Plus,
+  Check,
+  Sliders,
+  MessageSquare,
+  Trash2,
+  RotateCcw,
+} from "lucide-react"
 
-const personalPresets = [
-  { id: "instagram", name: "Instagram", icon: Instagram },
-  { id: "tiktok", name: "TikTok", icon: Globe },
-  { id: "phone", name: "Phone Number", icon: Phone },
-  { id: "snapchat", name: "Snapchat", icon: Globe },
-]
+type SubPage = "main" | "mode-rules" | "contact-us" | "data-management"
+type ShareMode = "personal" | "professional" | "custom"
 
-const professionalPresets = [
-  { id: "linkedin", name: "LinkedIn", icon: Linkedin },
-  { id: "email", name: "Email", icon: Mail },
-  { id: "github", name: "GitHub", icon: Github },
-  { id: "phone", name: "Phone Number", icon: Phone },
-  { id: "website", name: "Website", icon: Globe },
-]
-
-const allPlatforms = [
+const socialPlatforms = [
   { id: "instagram", name: "Instagram", icon: Instagram, placeholder: "@username" },
   { id: "linkedin", name: "LinkedIn", icon: Linkedin, placeholder: "linkedin.com/in/username" },
-  { id: "email", name: "Email", icon: Mail, placeholder: "you@example.com" },
-  { id: "github", name: "GitHub", icon: Github, placeholder: "github.com/username" },
-  { id: "phone", name: "Phone Number", icon: Phone, placeholder: "+1 (555) 123-4567" },
-  { id: "website", name: "Website", icon: Globe, placeholder: "https://yoursite.com" },
-  { id: "tiktok", name: "TikTok", icon: Globe, placeholder: "@username" },
-  { id: "snapchat", name: "Snapchat", icon: Globe, placeholder: "@username" },
   { id: "twitter", name: "Twitter/X", icon: Globe, placeholder: "@username" },
+  { id: "email", name: "Email", icon: Mail, placeholder: "you@example.com" },
+  { id: "phone", name: "Phone", icon: Phone, placeholder: "+1 (555) 123-4567" },
+  { id: "github", name: "GitHub", icon: Github, placeholder: "github.com/username" },
+  { id: "website", name: "Website", icon: Globe, placeholder: "https://yoursite.com" },
 ]
 
-const validateInput = (id: string, value: string): boolean => {
-  if (!value.trim()) return false
-  if (id === "email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-  if (id === "instagram" || id === "tiktok" || id === "snapchat" || id === "twitter") {
-    return value.startsWith("@") || value.length > 2
-  }
-  if (id === "phone") return /^[+]?[\d\s()-]{7,}$/.test(value)
-  if (id === "website") return value.startsWith("http") || value.includes(".")
-  return value.length > 2
-}
-
 export function SettingsPage() {
-  const [expandedMode, setExpandedMode] = useState<string | null>(null)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState<SubPage>("main")
+  const [userName, setUserName] = useState("Zaid Khayyat")
+  const [editingName, setEditingName] = useState(false)
+  const [tempName, setTempName] = useState(userName)
 
-  // Toggle states for each mode
-  const [personalToggles, setPersonalToggles] = useState<Record<string, boolean>>({
-    instagram: true,
-    tiktok: false,
-    phone: true,
-    snapchat: false,
-  })
-
-  const [professionalToggles, setProfessionalToggles] = useState<Record<string, boolean>>({
-    linkedin: true,
-    email: true,
-    github: false,
-    phone: true,
-    website: false,
-  })
-
-  const [customToggles, setCustomToggles] = useState<Record<string, boolean>>({
-    instagram: false,
-    linkedin: false,
-    email: false,
-    github: false,
-    phone: false,
-    website: false,
-    tiktok: false,
-    snapchat: false,
-    twitter: false,
-  })
-
-  // Link values and saved states
+  // Social links state
   const [links, setLinks] = useState<Record<string, string>>({})
   const [savedLinks, setSavedLinks] = useState<Record<string, boolean>>({})
+
+  // Mode rules state
+  const [activeModeRule, setActiveModeRule] = useState<ShareMode>("personal")
+  const [modeAssignments, setModeAssignments] = useState<Record<ShareMode, string[]>>({
+    personal: ["instagram", "phone"],
+    professional: ["linkedin", "email", "github"],
+    custom: [],
+  })
 
   const handleLinkChange = (id: string, value: string) => {
     setLinks((prev) => ({ ...prev, [id]: value }))
@@ -85,185 +57,134 @@ export function SettingsPage() {
   }
 
   const handleSaveLink = (id: string) => {
-    if (validateInput(id, links[id] || "")) {
+    if (links[id]?.trim()) {
       setSavedLinks((prev) => ({ ...prev, [id]: true }))
     }
   }
 
-  const handleDelete = () => {
-    console.log("User data deleted")
-    setShowDeleteConfirm(false)
+  const handleNameSave = () => {
+    if (tempName.trim()) {
+      setUserName(tempName.trim())
+    }
+    setEditingName(false)
   }
 
-  const ToggleSwitch = ({
-    enabled,
-    onToggle,
-  }: {
-    enabled: boolean
-    onToggle: () => void
-  }) => (
-    <button
-      onClick={onToggle}
-      className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
-        enabled ? "bg-green-500/60" : "bg-white/10"
-      } border border-white/20`}
-    >
-      <div
-        className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${
-          enabled ? "left-6" : "left-1"
-        }`}
-      />
-    </button>
-  )
-
-  const AccordionItem = ({
-    title,
-    description,
-    isExpanded,
-    onToggle,
-    presets,
-    toggles,
-    setToggles,
-  }: {
-    title: string
-    description: string
-    isExpanded: boolean
-    onToggle: () => void
-    presets: typeof personalPresets
-    toggles: Record<string, boolean>
-    setToggles: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
-  }) => {
-    const activeCount = Object.values(toggles).filter(Boolean).length
-
-    return (
-      <div className="glass-card rounded-2xl border border-white/15 overflow-hidden">
-        <button onClick={onToggle} className="w-full p-5 flex items-center justify-between text-left">
-          <div>
-            <h4 className="font-bold text-white text-lg">{title}</h4>
-            <p className="text-sm font-light text-white/50 mt-1">{description}</p>
-            <p className="text-xs text-blue-400 mt-2">{activeCount} items active</p>
-          </div>
-          <ChevronDown
-            className={`w-5 h-5 text-white/70 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        {isExpanded && (
-          <div className="px-5 pb-5 pt-2 border-t border-white/10 space-y-3">
-            {presets.map((preset) => {
-              const Icon = preset.icon
-              return (
-                <div key={preset.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5 text-white/70" />
-                    <span className="text-sm font-medium text-white/90">{preset.name}</span>
-                  </div>
-                  <ToggleSwitch
-                    enabled={toggles[preset.id] || false}
-                    onToggle={() =>
-                      setToggles((prev) => ({
-                        ...prev,
-                        [preset.id]: !prev[preset.id],
-                      }))
-                    }
-                  />
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    )
+  const toggleSocialInMode = (socialId: string) => {
+    setModeAssignments((prev) => {
+      const current = prev[activeModeRule]
+      if (current.includes(socialId)) {
+        return { ...prev, [activeModeRule]: current.filter((id) => id !== socialId) }
+      } else {
+        return { ...prev, [activeModeRule]: [...current, socialId] }
+      }
+    })
   }
 
-  return (
+  const navigateTo = (page: SubPage) => {
+    setCurrentPage(page)
+    setMenuOpen(false)
+  }
+
+  // Main Settings View
+  const MainView = () => (
     <div className="flex-1 flex flex-col px-6 pt-6 pb-24 overflow-y-auto">
-      <div className="mb-8">
-        <h3 className="text-xl font-bold text-white mb-4">Configure Modes</h3>
-        <div className="space-y-3">
-          <AccordionItem
-            title="Personal Mode"
-            description="Social & casual sharing"
-            isExpanded={expandedMode === "personal"}
-            onToggle={() => setExpandedMode(expandedMode === "personal" ? null : "personal")}
-            presets={personalPresets}
-            toggles={personalToggles}
-            setToggles={setPersonalToggles}
-          />
-
-          <AccordionItem
-            title="Professional Mode"
-            description="Work & career connections"
-            isExpanded={expandedMode === "professional"}
-            onToggle={() => setExpandedMode(expandedMode === "professional" ? null : "professional")}
-            presets={professionalPresets}
-            toggles={professionalToggles}
-            setToggles={setProfessionalToggles}
-          />
-
-          <AccordionItem
-            title="Custom Mode"
-            description="Your personalized selection"
-            isExpanded={expandedMode === "custom"}
-            onToggle={() => setExpandedMode(expandedMode === "custom" ? null : "custom")}
-            presets={allPlatforms}
-            toggles={customToggles}
-            setToggles={setCustomToggles}
-          />
+      {/* Header with Name, Pencil, and Hamburger */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          {editingName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                onBlur={handleNameSave}
+                onKeyDown={(e) => e.key === "Enter" && handleNameSave()}
+                autoFocus
+                className="bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-xl font-bold text-white focus:outline-none focus:border-white/40"
+              />
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-white">{userName}</h1>
+              <button
+                onClick={() => {
+                  setTempName(userName)
+                  setEditingName(true)
+                }}
+                className="p-2 rounded-lg hover:bg-white/10 transition-all"
+              >
+                <Pencil className="w-4 h-4 text-white/60" />
+              </button>
+            </>
+          )}
         </div>
+
+        {/* Hamburger Menu Button */}
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="midnight-glass p-3 rounded-xl"
+          style={{
+            transitionProperty: "background-color",
+            transitionDuration: "200ms",
+            transitionTimingFunction: "ease-out",
+          }}
+        >
+          <Menu className="w-6 h-6 text-white" />
+        </button>
       </div>
 
-      <div className="mb-8">
-        <h3 className="text-xl font-bold text-white mb-2">Update Your Details</h3>
-        <p className="text-sm font-light text-white/50 mb-4">Enter your handles and links below</p>
+      {/* Social Links Input Section */}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-white mb-2">Your Links</h3>
+        <p className="text-sm font-light text-white/50 mb-4">Add your social handles and contact info</p>
 
-        <div className="glass-card p-5 rounded-2xl border border-white/15 space-y-5">
-          {allPlatforms.map((platform) => {
+        <div className="space-y-4">
+          {socialPlatforms.map((platform) => {
             const Icon = platform.icon
             const value = links[platform.id] || ""
-            const isValid = validateInput(platform.id, value)
             const isSaved = savedLinks[platform.id]
             const hasValue = value.trim().length > 0
 
             return (
-              <div key={platform.id} className="space-y-2">
-                <div className="flex items-center gap-2">
+              <div key={platform.id} className="glass-card p-4 rounded-xl border border-white/15">
+                {/* Icon and Label */}
+                <div className="flex items-center gap-2 mb-3">
                   <Icon className="w-5 h-5 text-white/70" />
-                  <span className="text-sm font-medium text-white/90">{platform.name}</span>
+                  <span className="text-sm font-medium text-white">{platform.name}</span>
                 </div>
+
+                {/* Input and Add Button */}
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={value}
                     onChange={(e) => handleLinkChange(platform.id, e.target.value)}
                     placeholder={platform.placeholder}
-                    className={`flex-1 bg-black/40 px-4 py-3 rounded-lg text-white placeholder:text-white/40 focus:outline-none transition-all text-sm border ${
-                      hasValue
-                        ? isValid
-                          ? "border-green-500/50 focus:border-green-500/70"
-                          : "border-red-500/50 focus:border-red-500/70"
-                        : "border-white/15 focus:border-white/30"
-                    }`}
+                    className="flex-1 bg-white/5 border border-white/15 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 text-sm"
+                    style={{
+                      transitionProperty: "border-color",
+                      transitionDuration: "200ms",
+                      transitionTimingFunction: "ease-out",
+                    }}
                   />
                   <button
                     onClick={() => handleSaveLink(platform.id)}
-                    disabled={!hasValue || !isValid}
-                    className={`px-4 py-3 rounded-lg flex items-center gap-2 transition-all text-sm font-medium ${
+                    disabled={!hasValue}
+                    className={`px-4 py-3 rounded-lg flex items-center gap-2 text-sm font-medium ${
                       isSaved
                         ? "bg-green-500/30 border border-green-500/50 text-green-300"
-                        : hasValue && isValid
+                        : hasValue
                           ? "glass-button text-white"
                           : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
                     }`}
+                    style={{
+                      transitionProperty: "background-color, border-color, color",
+                      transitionDuration: "200ms",
+                      transitionTimingFunction: "ease-out",
+                    }}
                   >
-                    {isSaved ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">{links[platform.id] ? "Update" : "Add"}</span>
-                      </>
-                    )}
+                    {isSaved ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    <span className="hidden sm:inline">{isSaved ? "Saved" : "Add"}</span>
                   </button>
                 </div>
               </div>
@@ -272,44 +193,345 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="mb-8">
-        <button className="w-full glass-card p-4 rounded-xl border border-white/15 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
-          <Mail className="w-5 h-5 text-white" />
-          <span className="font-medium text-white">Contact Support</span>
-        </button>
-      </div>
+      {/* Hamburger Menu Overlay */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
 
-      <div className="pt-6 border-t border-white/10">
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="w-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 backdrop-blur-md px-4 py-4 rounded-xl text-red-300 font-medium flex items-center justify-center gap-2 transition-all"
+          {/* Menu Panel */}
+          <div
+            className="relative w-72 h-full bg-black/80 backdrop-blur-xl border-l border-white/10 p-6 flex flex-col"
+            style={{
+              animation: "slideInRight 0.3s ease-out",
+            }}
           >
-            <Trash2 className="w-4 h-4" />
-            Delete Account & Wipe Data
-          </button>
-        ) : (
-          <div className="bg-red-500/10 border border-red-500/30 backdrop-blur-md p-4 rounded-xl space-y-3">
-            <p className="text-white/70 text-sm font-light">
-              This action cannot be undone. All your data will be permanently deleted.
-            </p>
-            <div className="flex gap-3">
+            <style>{`
+              @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+              }
+            `}</style>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="self-end p-2 rounded-lg hover:bg-white/10 transition-all mb-6"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Menu Items */}
+            <div className="space-y-3">
               <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 glass-button py-3 rounded-lg text-white font-medium text-sm"
+                onClick={() => navigateTo("mode-rules")}
+                className="w-full glass-card p-4 rounded-xl border border-white/15 flex items-center gap-3 hover:bg-white/10 transition-all text-left"
               >
-                Cancel
+                <Sliders className="w-5 h-5 text-white/70" />
+                <span className="font-medium text-white">Mode Rules</span>
               </button>
+
               <button
-                onClick={handleDelete}
-                className="flex-1 bg-red-500/40 border border-red-500/60 py-3 rounded-lg text-red-200 font-medium text-sm hover:bg-red-500/50 transition-all"
+                onClick={() => navigateTo("contact-us")}
+                className="w-full glass-card p-4 rounded-xl border border-white/15 flex items-center gap-3 hover:bg-white/10 transition-all text-left"
               >
-                Confirm Delete
+                <MessageSquare className="w-5 h-5 text-white/70" />
+                <span className="font-medium text-white">Contact Us</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo("data-management")}
+                className="w-full glass-card p-4 rounded-xl border border-white/15 flex items-center gap-3 hover:bg-white/10 transition-all text-left"
+              >
+                <Trash2 className="w-5 h-5 text-red-400/70" />
+                <span className="font-medium text-white">Data Management</span>
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+  )
+
+  // Mode Rules Subpage
+  const ModeRulesView = () => {
+    const modes: { id: ShareMode; label: string }[] = [
+      { id: "personal", label: "Personal" },
+      { id: "professional", label: "Professional" },
+      { id: "custom", label: "Custom" },
+    ]
+
+    const addedSocials = socialPlatforms.filter((p) => links[p.id]?.trim())
+
+    return (
+      <div className="flex-1 flex flex-col px-6 pt-6 pb-24 overflow-y-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => setCurrentPage("main")}
+          className="flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-all"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Back</span>
+        </button>
+
+        <h2 className="text-2xl font-bold text-white mb-6">Mode Rules</h2>
+
+        {/* Mode Switcher (mimics Home Page) */}
+        <div className="glass-card p-1.5 rounded-2xl border border-white/15 flex mb-8">
+          {modes.map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => setActiveModeRule(mode.id)}
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all ${
+                activeModeRule === mode.id
+                  ? "bg-white/20 text-white border border-white/20"
+                  : "text-white/50 hover:text-white/80"
+              }`}
+              style={{
+                transitionProperty: "background-color, color, border-color",
+                transitionDuration: "200ms",
+                transitionTimingFunction: "ease-out",
+              }}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Social Assignment List */}
+        <div className="glass-card p-5 rounded-2xl border border-white/15">
+          <p className="text-sm font-light text-white/50 mb-4">
+            Select which links to share in <span className="text-white font-medium">{activeModeRule}</span> mode:
+          </p>
+
+          {addedSocials.length === 0 ? (
+            <p className="text-white/40 text-sm text-center py-4">Add some links first in the main settings page.</p>
+          ) : (
+            <div className="space-y-3">
+              {addedSocials.map((platform) => {
+                const Icon = platform.icon
+                const isAssigned = modeAssignments[activeModeRule].includes(platform.id)
+
+                return (
+                  <button
+                    key={platform.id}
+                    onClick={() => toggleSocialInMode(platform.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all text-left"
+                  >
+                    {/* Bullet Point */}
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isAssigned ? "bg-green-500 border-green-500" : "border-white/30"
+                      }`}
+                    >
+                      {isAssigned && <Check className="w-3 h-3 text-white" />}
+                    </div>
+
+                    <Icon className="w-5 h-5 text-white/70" />
+                    <span className="font-medium text-white">{platform.name}</span>
+                    <span className="text-xs text-white/40 ml-auto truncate max-w-[120px]">{links[platform.id]}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Contact Us Subpage
+  const ContactUsView = () => {
+    const [message, setMessage] = useState("")
+    const [sent, setSent] = useState(false)
+
+    const handleSend = () => {
+      if (message.trim()) {
+        setSent(true)
+        setMessage("")
+        setTimeout(() => setSent(false), 3000)
+      }
+    }
+
+    return (
+      <div className="flex-1 flex flex-col px-6 pt-6 pb-24 overflow-y-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => setCurrentPage("main")}
+          className="flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-all"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Back</span>
+        </button>
+
+        <h2 className="text-2xl font-bold text-white mb-6">Contact Us</h2>
+
+        <div className="glass-card p-5 rounded-2xl border border-white/15 space-y-4">
+          {/* Company Info */}
+          <div className="space-y-2 pb-4 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-white/60" />
+              <span className="text-sm text-white/80">support@qrshare.app</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-white/60" />
+              <span className="text-sm text-white/80">+1 (555) 123-4567</span>
+            </div>
+          </div>
+
+          {/* Message Area */}
+          <div>
+            <label className="text-sm font-medium text-white/70 mb-2 block">Your Message</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="How can we help you?"
+              rows={5}
+              className="w-full bg-white/5 border border-white/15 px-4 py-3 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 text-sm resize-none"
+            />
+          </div>
+
+          {/* Send Button */}
+          <button
+            onClick={handleSend}
+            disabled={!message.trim()}
+            className={`w-full py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+              sent
+                ? "bg-green-500/30 border border-green-500/50 text-green-300"
+                : message.trim()
+                  ? "glass-button text-white"
+                  : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
+            }`}
+          >
+            {sent ? (
+              <>
+                <Check className="w-5 h-5" />
+                Message Sent!
+              </>
+            ) : (
+              "Send Message"
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Data Management Subpage
+  const DataManagementView = () => {
+    const [confirmReset, setConfirmReset] = useState(false)
+    const [confirmDelete, setConfirmDelete] = useState(false)
+
+    const handleReset = () => {
+      setLinks({})
+      setSavedLinks({})
+      setConfirmReset(false)
+    }
+
+    const handleDelete = () => {
+      console.log("Account deleted")
+      setConfirmDelete(false)
+    }
+
+    return (
+      <div className="flex-1 flex flex-col px-6 pt-6 pb-24 overflow-y-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => setCurrentPage("main")}
+          className="flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-all"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Back</span>
+        </button>
+
+        <h2 className="text-2xl font-bold text-white mb-6">Data Management</h2>
+
+        <div className="space-y-4">
+          {/* Reset Option */}
+          <div className="glass-card p-5 rounded-2xl border border-white/15">
+            <div className="flex items-start gap-3 mb-4">
+              <RotateCcw className="w-5 h-5 text-yellow-400 mt-0.5" />
+              <div>
+                <h3 className="font-bold text-white">Clear All Links</h3>
+                <p className="text-sm font-light text-white/50 mt-1">
+                  Wipes all your social links but keeps your account active.
+                </p>
+              </div>
+            </div>
+
+            {!confirmReset ? (
+              <button
+                onClick={() => setConfirmReset(true)}
+                className="w-full py-3 rounded-xl bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 font-medium hover:bg-yellow-500/30 transition-all"
+              >
+                Reset Links
+              </button>
+            ) : (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="flex-1 py-3 rounded-lg glass-button text-white font-medium text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="flex-1 py-3 rounded-lg bg-yellow-500/40 border border-yellow-500/60 text-yellow-200 font-medium text-sm hover:bg-yellow-500/50 transition-all"
+                >
+                  Confirm Reset
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Delete Option */}
+          <div className="bg-red-500/10 border border-red-500/30 backdrop-blur-md p-5 rounded-2xl">
+            <div className="flex items-start gap-3 mb-4">
+              <Trash2 className="w-5 h-5 text-red-400 mt-0.5" />
+              <div>
+                <h3 className="font-bold text-white">Delete Account</h3>
+                <p className="text-sm font-light text-white/50 mt-1">
+                  Permanently removes your account and all associated data. This cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="w-full py-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 font-medium hover:bg-red-500/30 transition-all"
+              >
+                Delete Account
+              </button>
+            ) : (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="flex-1 py-3 rounded-lg glass-button text-white font-medium text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 py-3 rounded-lg bg-red-500/40 border border-red-500/60 text-red-200 font-medium text-sm hover:bg-red-500/50 transition-all"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Render current page
+  return (
+    <>
+      {currentPage === "main" && <MainView />}
+      {currentPage === "mode-rules" && <ModeRulesView />}
+      {currentPage === "contact-us" && <ContactUsView />}
+      {currentPage === "data-management" && <DataManagementView />}
+    </>
   )
 }

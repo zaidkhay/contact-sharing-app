@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { LinkIcon } from "lucide-react"
-import { ModeToggle, type ShareMode } from "@/components/mode-toggle"
+import { Camera, LinkIcon } from "lucide-react"
 import { QRCodeDisplay } from "@/components/qr-code-display"
-import { FABButton } from "@/components/fab-button"
+
+type ShareMode = "personal" | "professional" | "custom"
 
 export function HomePage() {
   const [activeMode, setActiveMode] = useState<ShareMode>("professional")
@@ -17,31 +17,64 @@ export function HomePage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const modes: { id: ShareMode; label: string }[] = [
+    { id: "personal", label: "Personal" },
+    { id: "professional", label: "Professional" },
+    { id: "custom", label: "Custom" },
+  ]
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-start px-6 pt-8 pb-24">
-      {/* Top Header Section */}
-      <div className="w-full flex items-start justify-between mb-12">
+    <div className="flex-1 flex flex-col px-6 pt-8 pb-24">
+      <div className="w-full flex items-start justify-between mb-10">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Zaid Khayyat</h1>
-          <p className="text-sm text-white/40 mt-1">Share your contact</p>
+          <p className="text-sm font-light text-white/40 mt-1">Share your contact</p>
+        </div>
+        <button
+          onClick={() => console.log("Open Camera Scanner")}
+          className="midnight-glass p-3 rounded-xl"
+          style={{
+            transitionProperty: "background-color, border-color",
+            transitionDuration: "200ms",
+            transitionTimingFunction: "ease-out",
+          }}
+        >
+          <Camera className="w-6 h-6 text-white" />
+        </button>
+      </div>
+
+      <div className="w-full mb-10">
+        <div className="glass-card p-1.5 rounded-2xl border border-white/15 flex">
+          {modes.map((mode) => (
+            <button
+              key={mode.id}
+              onClick={() => setActiveMode(mode.id)}
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all ${
+                activeMode === mode.id
+                  ? "bg-white/20 text-white border border-white/20"
+                  : "text-white/50 hover:text-white/80"
+              }`}
+              style={{
+                transitionProperty: "background-color, color, border-color",
+                transitionDuration: "200ms",
+                transitionTimingFunction: "ease-out",
+              }}
+            >
+              {mode.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Mode Switcher */}
-      <div className="w-full mb-12">
-        <ModeToggle activeMode={activeMode} onModeChange={setActiveMode} />
-      </div>
-
-      {/* QR Code Center Section */}
       <div className="flex-1 flex items-center justify-center w-full mb-8">
         <div className="relative">
           <style>{`
             @keyframes pulse-subtle {
               0%, 100% { opacity: 1; }
-              50% { opacity: 0.8; }
+              50% { opacity: 0.85; }
             }
             .qr-pulse {
-              animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+              animation: pulse-subtle 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
             }
           `}</style>
           <div className="qr-pulse">
@@ -53,19 +86,16 @@ export function HomePage() {
       {/* Copy Link Button */}
       <button
         onClick={handleCopyLink}
-        className="glass-button w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 mb-6 transition-all"
+        className="glass-button w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2"
         style={{
-          transitionProperty: "all",
-          transitionDuration: "300ms",
-          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+          transitionProperty: "background-color, border-color",
+          transitionDuration: "200ms",
+          transitionTimingFunction: "ease-out",
         }}
       >
         <LinkIcon className="w-5 h-5 text-white/90" />
         <span className="text-white font-medium">{copied ? "Copied!" : "Copy Link"}</span>
       </button>
-
-      {/* FAB for QR Scanning */}
-      <FABButton onClick={() => console.log("Open QR Scanner")} />
     </div>
   )
 }
